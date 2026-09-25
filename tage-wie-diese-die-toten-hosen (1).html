@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lückentext com música</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#e9edf2; --paper:#fbfcfd; --ink:#1b2233; --muted:#5d6678; --rule:#cfd6e0;
+  --hl:#ffd93b; --hl-ink:#1b2233; --blue:#2f5bd3; --blue-soft:#dfe7fb;
+  --ok:#1d7f47; --ok-soft:#dcf2e5; --bad:#b8352a; --bad-soft:#f9e1de;
+  --chip:#1b2233; --chip-ink:#fbfcfd;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10141c; --paper:#181e2a; --ink:#e8ecf3; --muted:#9aa4b6; --rule:#2c3546;
+    --hl:#f5cf2e; --hl-ink:#10141c; --blue:#7f9ff5; --blue-soft:#222d47;
+    --ok:#6fd49a; --ok-soft:#173325; --bad:#ff8b7e; --bad-soft:#3a1c19;
+    --chip:#e8ecf3; --chip-ink:#10141c;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10141c; --paper:#181e2a; --ink:#e8ecf3; --muted:#9aa4b6; --rule:#2c3546;
+  --hl:#f5cf2e; --hl-ink:#10141c; --blue:#7f9ff5; --blue-soft:#222d47;
+  --ok:#6fd49a; --ok-soft:#173325; --bad:#ff8b7e; --bad-soft:#3a1c19;
+  --chip:#e8ecf3; --chip-ink:#10141c;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Atkinson Hyperlegible",system-ui,sans-serif;font-size:1.0625rem;line-height:1.55}
+.wrap{max-width:52rem;margin:0 auto;padding:1.5rem 1.25rem 4rem}
+header h1{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:800;font-size:clamp(2.4rem,7vw,4rem);line-height:.95;letter-spacing:-.02em;margin:.5rem 0 .6rem}
+header h1 mark{background:linear-gradient(transparent 55%,var(--hl) 55%);color:inherit;padding:0 .1em}
+header p{margin:0;color:var(--muted);max-width:38rem}
+nav.steps{display:flex;gap:.5rem;margin:1.75rem 0 1rem;flex-wrap:wrap}
+nav.steps button{font:inherit;font-weight:700;border:2px solid var(--ink);background:transparent;color:var(--ink);padding:.45rem .9rem;border-radius:999px;cursor:pointer}
+nav.steps button span{display:inline-grid;place-items:center;width:1.5em;height:1.5em;border-radius:50%;background:var(--ink);color:var(--paper);font-size:.8em;margin-right:.4em}
+nav.steps button[aria-selected="true"]{background:var(--ink);color:var(--paper)}
+nav.steps button[aria-selected="true"] span{background:var(--hl);color:var(--hl-ink)}
+section.panel{background:var(--paper);border:1px solid var(--rule);border-radius:14px;padding:1.4rem 1.3rem}
+section.panel[hidden]{display:none}
+label{display:block;font-weight:700;margin:.2rem 0 .35rem}
+input[type=text],textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--rule);border-radius:8px;padding:.6rem .7rem}
+textarea{min-height:18rem;resize:vertical;line-height:1.5}
+.field{margin-bottom:1rem}
+.hint{color:var(--muted);font-size:.92rem;margin:.3rem 0 0}
+.row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+.btn{font:inherit;font-weight:700;border:0;border-radius:8px;padding:.6rem 1rem;cursor:pointer;background:var(--ink);color:var(--paper)}
+.btn.alt{background:transparent;color:var(--ink);border:1.5px solid var(--rule)}
+.btn.go{background:var(--blue);color:#fff}
+:root[data-theme="dark"] .btn.go{color:#10141c}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn.go{color:#10141c}}
+button:focus-visible,input:focus-visible,textarea:focus-visible,.gap:focus-visible,.seg:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.toolbar{display:flex;justify-content:space-between;gap:.75rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem}
+.seg-toggle{display:inline-flex;border:1.5px solid var(--rule);border-radius:8px;overflow:hidden}
+.seg-toggle button{font:inherit;border:0;background:transparent;color:var(--ink);padding:.45rem .8rem;cursor:pointer}
+.seg-toggle button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.count{font-weight:700}
+.lyrics{font-size:1.12rem;line-height:2.1}
+.line{min-height:1.2em}
+.stanza{height:1.1rem}
+.seg{font:inherit;color:inherit;background:none;border:0;padding:0 .08em;cursor:pointer;border-radius:3px;text-align:left}
+.seg:hover{background:var(--blue-soft)}
+.seg.on{background:var(--hl);color:var(--hl-ink)}
+.empty{color:var(--muted);padding:2rem 0;text-align:center}
+.ex-head{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
+.ex-head h2{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:800;font-size:1.7rem;line-height:1.1;margin:0}
+.ex-head a{color:var(--blue);font-weight:700}
+.bank{position:sticky;top:env(safe-area-inset-top,0px);z-index:2;background:var(--paper);border-bottom:1px solid var(--rule);padding:.8rem 0 .9rem;margin-bottom:1rem}
+.bank h3{font-size:1rem;margin:0 0 .5rem}
+.chips{display:flex;flex-wrap:wrap;gap:.45rem}
+.chip{font:inherit;font-size:.98rem;background:var(--chip);color:var(--chip-ink);border:0;border-radius:6px;padding:.35rem .7rem;cursor:grab;touch-action:manipulation}
+.chip.sel{outline:3px solid var(--hl);outline-offset:2px}
+.chips .done{color:var(--muted);font-size:.95rem}
+.gap{display:inline-block;min-width:7.5em;border-bottom:2px dashed var(--blue);background:var(--blue-soft);border-radius:4px 4px 0 0;padding:0 .4em;line-height:1.6;cursor:pointer;vertical-align:baseline;color:var(--muted)}
+.gap.filled{color:var(--ink);border-bottom-style:solid}
+.gap.over{background:var(--hl);color:var(--hl-ink)}
+.gap.ok{background:var(--ok-soft);border-bottom-color:var(--ok);color:var(--ok)}
+.gap.bad{background:var(--bad-soft);border-bottom-color:var(--bad);color:var(--bad)}
+.teacher-bar{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;justify-content:space-between;background:var(--blue-soft);border-radius:10px;padding:.7rem .9rem;margin-bottom:1rem}
+.teacher-bar p{margin:0;font-size:.95rem}
+.teacher-bar[hidden],.btn[hidden],a[hidden]{display:none}
+.check{display:flex;gap:.5rem;align-items:center;font-weight:400;margin:1rem 0 0}
+.msg{font-size:.95rem;margin-top:.8rem;min-height:1.2em}
+.score{font-weight:700;margin-top:1rem;min-height:1.5em}
+.actions{margin-top:1.3rem}
+@media print{
+  body{background:#fff;color:#000}
+  header,nav.steps,.actions,.no-print{display:none!important}
+  section.panel{border:0;padding:0}
+  .bank{position:static}
+  .chip{background:#fff;color:#000;border:1px solid #000}
+  .gap{background:none;border-bottom:1px solid #000;color:transparent;min-width:12em}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 id="h1">Lückentext <mark>com música</mark></h1>
+    <p id="sub">Cole a letra, marque os trechos que viram lacuna e use o exercício na aula. Os alunos arrastam ou tocam nas frases para encaixá-las no lugar certo.</p>
+  </header>
+
+  <nav class="steps" role="tablist" id="nav">
+    <button role="tab" data-step="1" aria-selected="true"><span>1</span>Colar a letra</button>
+    <button role="tab" data-step="2" aria-selected="false"><span>2</span>Escolher lacunas</button>
+    <button role="tab" data-step="3" aria-selected="false"><span>3</span>Exercício</button>
+  </nav>
+
+  <section class="panel" id="p1">
+    <div class="field">
+      <label for="title">Título do exercício</label>
+      <input type="text" id="title">
+    </div>
+    <div class="field">
+      <label for="video">Link do vídeo</label>
+      <input type="text" id="video" inputmode="url">
+    </div>
+    <div class="field">
+      <label for="text">Letra da música</label>
+      <textarea id="text" placeholder="Cole aqui a letra, um verso por linha. Deixe uma linha em branco entre as estrofes."></textarea>
+      <p class="hint">O texto fica salvo só neste navegador.</p>
+    </div>
+    <div class="row"><button class="btn go" data-goto="2">Escolher lacunas</button></div>
+  </section>
+
+  <section class="panel" id="p2" hidden>
+    <div class="toolbar">
+      <div class="seg-toggle" role="group" aria-label="Tamanho das lacunas">
+        <button data-mode="comma" aria-pressed="true">Trechos entre vírgulas</button>
+        <button data-mode="line" aria-pressed="false">Verso inteiro</button>
+      </div>
+      <div class="row">
+        <span class="count" id="count">0 lacunas</span>
+        <button class="btn alt" id="random">Sortear</button>
+        <button class="btn alt" id="clear">Limpar</button>
+      </div>
+    </div>
+    <p class="hint" style="margin:0 0 1rem">Toque num trecho para transformá-lo em lacuna. Toque de novo para desfazer.</p>
+    <div class="lyrics" id="picker"></div>
+    <label class="check"><input type="checkbox" id="allowReveal"> Mostrar o botão de gabarito para os alunos</label>
+    <div class="row actions"><button class="btn go" data-goto="3">Montar exercício</button></div>
+  </section>
+
+  <section class="panel" id="p3" hidden>
+    <div class="teacher-bar" id="tbarEdit" hidden>
+      <p>Você está vendo o exercício como os alunos veem.</p>
+      <button class="btn alt" id="edit">Editar exercício</button>
+    </div>
+    <div class="teacher-bar" id="tbarPub" hidden>
+      <p id="pubText">Quando estiver pronto, publique para que os alunos façam o exercício pelo link.</p>
+      <div class="row"><button class="btn alt" id="unpublish" hidden>Retirar do ar</button><button class="btn alt" id="download" hidden>Baixar HTML para os alunos</button><button class="btn go" id="publish">Publicar para os alunos</button></div>
+    </div>
+    <div class="ex-head">
+      <h2 id="exTitle"></h2>
+      <a id="exVideo" target="_blank" rel="noopener" class="no-print">Ouvir a música</a>
+    </div>
+    <div class="bank">
+      <h3>Encaixe as frases</h3>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="lyrics" id="exercise"></div>
+    <div class="score" id="score" aria-live="polite"></div>
+    <div class="msg" id="msg" aria-live="polite"></div>
+    <div class="row actions">
+      <button class="btn go" id="check">Conferir</button>
+      <button class="btn alt" id="reset">Recomeçar</button>
+      <button class="btn alt" id="reveal">Mostrar respostas</button>
+      <button class="btn alt" id="print">Imprimir folha</button>
+    </div>
+  </section>
+</div>
+
+<script type="application/json" id="exdata">{"enc":"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"}</script>
+<script>
+const TEMPLATE = "";
+const KEY = 'lueckentext-v1';
+const state = { title:'Tage wie diese – Die Toten Hosen', video:'https://youtu.be/j09hpp3AxIE', text:'', mode:'comma', gaps:[], allowReveal:false };
+let PUB = null;
+const OBF_KEY = 'lueckentext';
+function obfuscate(obj){
+  const bytes = new TextEncoder().encode(JSON.stringify(obj));
+  let bin = '';
+  bytes.forEach((b, i) => { bin += String.fromCharCode(b ^ OBF_KEY.charCodeAt(i % OBF_KEY.length)); });
+  return { enc: btoa(bin) };
+}
+function deobfuscate(o){
+  if (!o || !o.enc) return o;
+  const bin = atob(o.enc);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i) ^ OBF_KEY.charCodeAt(i % OBF_KEY.length);
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+try { PUB = deobfuscate(JSON.parse(document.getElementById('exdata').textContent)); } catch(e) { PUB = null; }
+let studentMode = !!(PUB && PUB.text);
+if (studentMode) Object.assign(state, PUB);
+else { try { const s = localStorage.getItem(KEY); if (s) Object.assign(state, JSON.parse(s)); } catch(e) {} }
+const save = () => { if (studentMode) return; try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {} };
+const $ = id => document.getElementById(id);
+
+function parse(){
+  return state.text.replace(/\r/g,'').split('\n').map(line => {
+    if (!line.trim()) return null;
+    if (state.mode === 'line') return [{ t: line.trim() }];
+    const out = [];
+    line.split(/(,\s*)/).forEach(p => {
+      if (/^,\s*$/.test(p)) out.push({ sep: p });
+      else if (p.length) out.push({ t: p });
+    });
+    return out;
+  });
+}
+
+/* Step navigation */
+function go(n){
+  document.querySelectorAll('nav.steps button').forEach(b => b.setAttribute('aria-selected', b.dataset.step == n));
+  [1,2,3].forEach(i => { const p = $('p'+i); if (p) p.hidden = i != n; });
+  if (n == 2) renderPicker();
+  if (n == 3) buildExercise();
+}
+document.querySelectorAll('[data-step]').forEach(b => b.onclick = () => go(b.dataset.step));
+document.querySelectorAll('[data-goto]').forEach(b => b.onclick = () => go(b.dataset.goto));
+
+/* Step 1 */
+$('title').value = state.title; $('video').value = state.video; $('text').value = state.text;
+$('title').oninput = e => { state.title = e.target.value; save(); };
+$('video').oninput = e => { state.video = e.target.value; save(); };
+$('text').oninput = e => { state.text = e.target.value; state.gaps = []; save(); };
+
+/* Step 2 */
+function updateCount(){ const n = state.gaps.length; $('count').textContent = n + (n === 1 ? ' lacuna' : ' lacunas'); }
+function renderPicker(){
+  const box = $('picker'); box.innerHTML = '';
+  const lines = parse();
+  if (!lines.some(Boolean)) { box.innerHTML = '<p class="empty">Cole a letra no passo 1 para começar.</p>'; updateCount(); return; }
+  const set = new Set(state.gaps);
+  lines.forEach((segs, i) => {
+    if (!segs) { const d = document.createElement('div'); d.className = 'stanza'; box.appendChild(d); return; }
+    const div = document.createElement('div'); div.className = 'line';
+    segs.forEach((s, j) => {
+      if (s.sep !== undefined) { div.appendChild(document.createTextNode(s.sep)); return; }
+      const k = i + '-' + j;
+      const b = document.createElement('button'); b.className = 'seg' + (set.has(k) ? ' on' : '');
+      b.textContent = s.t; b.setAttribute('aria-pressed', set.has(k));
+      b.onclick = () => {
+        const idx = state.gaps.indexOf(k);
+        if (idx >= 0) state.gaps.splice(idx, 1); else state.gaps.push(k);
+        b.classList.toggle('on'); b.setAttribute('aria-pressed', idx < 0); save(); updateCount();
+      };
+      div.appendChild(b);
+    });
+    box.appendChild(div);
+  });
+  updateCount();
+}
+document.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => {
+  if (state.mode === b.dataset.mode) return;
+  state.mode = b.dataset.mode; state.gaps = []; save();
+  document.querySelectorAll('[data-mode]').forEach(x => x.setAttribute('aria-pressed', x.dataset.mode === state.mode));
+  renderPicker();
+});
+document.querySelectorAll('[data-mode]').forEach(x => x.setAttribute('aria-pressed', x.dataset.mode === state.mode));
+$('clear').onclick = () => { state.gaps = []; save(); renderPicker(); };
+$('random').onclick = () => {
+  state.gaps = [];
+  parse().forEach((segs, i) => {
+    if (!segs || Math.random() > .4) return;
+    const opts = segs.map((s, j) => s.t !== undefined && s.t.trim().length > 3 ? j : -1).filter(j => j >= 0);
+    if (opts.length) state.gaps.push(i + '-' + opts[Math.floor(Math.random() * opts.length)]);
+  });
+  save(); renderPicker();
+};
+
+/* Step 3 */
+let chips = [], placed = {}, selected = null, answers = {};
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+function buildExercise(){
+  chips = []; placed = {}; selected = null; answers = {}; $('score').textContent = '';
+  const set = new Set(state.gaps);
+  parse().forEach((segs, i) => segs && segs.forEach((s, j) => {
+    if (s.t !== undefined && set.has(i + '-' + j)) chips.push({ id: 'c' + chips.length, text: s.t.trim(), used: false });
+  }));
+  shuffle(chips);
+  $('exTitle').textContent = state.title || 'Lückentext';
+  $('reveal').hidden = studentMode && !state.allowReveal;
+  $('print').hidden = studentMode;
+  const v = $('exVideo');
+  if (state.video.trim()) { v.href = state.video.trim(); v.hidden = false; } else v.hidden = true;
+  render();
+}
+
+function render(){
+  const ex = $('exercise'); ex.innerHTML = '';
+  const lines = parse(); const set = new Set(state.gaps);
+  if (!lines.some(Boolean)) { ex.innerHTML = '<p class="empty">Cole a letra no passo 1 para começar.</p>'; $('chips').innerHTML = ''; return; }
+  if (!chips.length) { ex.innerHTML = '<p class="empty">Marque pelo menos uma lacuna no passo 2.</p>'; $('chips').innerHTML = ''; return; }
+  lines.forEach((segs, i) => {
+    if (!segs) { const d = document.createElement('div'); d.className = 'stanza'; ex.appendChild(d); return; }
+    const div = document.createElement('div'); div.className = 'line';
+    segs.forEach((s, j) => {
+      if (s.sep !== undefined) { div.appendChild(document.createTextNode(s.sep)); return; }
+      const k = i + '-' + j;
+      if (!set.has(k)) { div.appendChild(document.createTextNode(s.t)); return; }
+      const g = document.createElement('span');
+      g.className = 'gap'; g.tabIndex = 0; g.setAttribute('role', 'button');
+      g.dataset.key = k; answers[k] = s.t.trim();
+      const c = placed[k] && chips.find(x => x.id === placed[k]);
+      if (c) { g.textContent = c.text; g.classList.add('filled'); g.setAttribute('aria-label', 'Lacuna preenchida: ' + c.text); }
+      else { g.textContent = '\u00a0'; g.setAttribute('aria-label', 'Lacuna vazia'); }
+      g.onclick = () => gapClick(k);
+      g.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); gapClick(k); } };
+      g.ondragover = e => { e.preventDefault(); g.classList.add('over'); };
+      g.ondragleave = () => g.classList.remove('over');
+      g.ondrop = e => { e.preventDefault(); place(k, e.dataTransfer.getData('text/plain')); };
+      div.appendChild(g);
+    });
+    ex.appendChild(div);
+  });
+  const box = $('chips'); box.innerHTML = '';
+  const free = chips.filter(c => !c.used);
+  if (!free.length) { box.innerHTML = '<span class="done">Todas as frases foram usadas. Clique em Conferir.</span>'; }
+  free.forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'chip' + (selected === c.id ? ' sel' : ''); b.textContent = c.text; b.draggable = true;
+    b.setAttribute('aria-pressed', selected === c.id);
+    b.onclick = () => { selected = selected === c.id ? null : c.id; render(); };
+    b.ondragstart = e => e.dataTransfer.setData('text/plain', c.id);
+    box.appendChild(b);
+  });
+}
+
+function unplace(k){ const c = chips.find(x => x.id === placed[k]); if (c) c.used = false; delete placed[k]; }
+function place(k, id){
+  const c = chips.find(x => x.id === id); if (!c || c.used) return;
+  if (placed[k]) unplace(k);
+  c.used = true; placed[k] = id; selected = null; $('score').textContent = ''; render();
+}
+function gapClick(k){
+  if (selected) place(k, selected);
+  else if (placed[k]) { unplace(k); $('score').textContent = ''; render(); }
+}
+
+$('check').onclick = () => {
+  let ok = 0, total = 0;
+  document.querySelectorAll('.gap').forEach(g => {
+    total++;
+    const c = placed[g.dataset.key] && chips.find(x => x.id === placed[g.dataset.key]);
+    g.classList.remove('ok', 'bad');
+    if (c) { const right = c.text === answers[g.dataset.key]; g.classList.add(right ? 'ok' : 'bad'); if (right) ok++; }
+  });
+  $('score').textContent = ok === total ? 'Alles richtig! ' + ok + ' de ' + total + '.' : ok + ' de ' + total + ' corretas. Toque nas lacunas vermelhas para tentar de novo.';
+};
+$('reset').onclick = buildExercise;
+$('reveal').onclick = () => {
+  chips.forEach(c => c.used = false); placed = {};
+  document.querySelectorAll('.gap').forEach(g => {
+    const c = chips.find(x => !x.used && x.text === answers[g.dataset.key]);
+    if (c) { c.used = true; placed[g.dataset.key] = c.id; }
+  });
+  render(); $('check').click();
+};
+$('print').onclick = () => { chips.forEach(c => c.used = false); placed = {}; selected = null; render(); window.print(); };
+
+$('allowReveal').checked = !!state.allowReveal;
+$('allowReveal').onchange = e => { state.allowReveal = e.target.checked; save(); };
+
+/* Publishing for students */
+const DATA_MARK = '__EX' + 'DATA__', SELF_MARK = '__SE' + 'LF__';
+const esc = str => str.replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
+function buildHtml(data){
+  const json = esc(JSON.stringify(data ? obfuscate(data) : null));
+  return TEMPLATE.split(DATA_MARK).join(json).split(SELF_MARK).join(esc(JSON.stringify(TEMPLATE)));
+}
+let artifactApi = null, downloadsApi = null, canEdit = false;
+function applyMode(){
+  const nv = teacherParts ? teacherParts[0].n : null; if (nv) nv.hidden = studentMode;
+  $('sub').textContent = studentMode
+    ? 'Ouça a música e encaixe cada frase no lugar certo. Arraste a frase até a lacuna ou toque na frase e depois na lacuna.'
+    : 'Cole a letra, marque os trechos que viram lacuna e publique o exercício para os alunos fazerem pelo link.';
+  $('tbarEdit').hidden = !(studentMode && canEdit);
+  $('tbarPub').hidden = studentMode || !canEdit || !(artifactApi || downloadsApi);
+  $('publish').hidden = !artifactApi;
+  $('download').hidden = !downloadsApi;
+  $('unpublish').hidden = !(PUB && PUB.text);
+  $('pubText').textContent = PUB && PUB.text
+    ? 'Já existe uma versão publicada. Publique de novo para substituí-la pelas alterações.'
+    : 'Quando estiver pronto, publique para que os alunos façam o exercício pelo link.';
+}
+function showMsg(t){ $('msg').textContent = t; }
+async function doPublish(data){
+  if (!artifactApi) return;
+  showMsg('Publicando…');
+  try { await artifactApi.publish(buildHtml(data)); }
+  catch(err){
+    const c = err && err.code;
+    if (c === 'conflict') showMsg('');
+    else if (c === 'not_writer' || c === 'not_granted' || c === 'consent_required' || c === 'capability_disabled') { artifactApi = null; applyMode(); showMsg('Este acesso é só de leitura, então não é possível publicar daqui.'); }
+    else if (c === 'too_large') showMsg('O exercício ficou grande demais para publicar.');
+    else showMsg('Não foi possível publicar agora. Tente de novo em alguns instantes.');
+  }
+}
+$('publish').onclick = () => {
+  if (!state.text.trim() || !state.gaps.length) { showMsg('Cole a letra e marque pelo menos uma lacuna antes de publicar.'); return; }
+  doPublish(exerciseData());
+};
+$('unpublish').onclick = () => { if (confirm('Retirar o exercício do ar? Os alunos deixam de vê-lo.')) doPublish(null); };
+function exerciseData(){ return { title: state.title, video: state.video, text: state.text, mode: state.mode, gaps: state.gaps, allowReveal: !!state.allowReveal }; }
+$('download').onclick = async () => {
+  if (!state.text.trim() || !state.gaps.length) { showMsg('Cole a letra e marque pelo menos uma lacuna antes de baixar.'); return; }
+  const html = TEMPLATE.split(DATA_MARK).join(esc(JSON.stringify(obfuscate(Object.assign(exerciseData(), { standalone: true }))))).split(SELF_MARK).join('""');
+  const name = (state.title || 'exercicio').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w]+/g, '-').replace(/^-|-$/g, '').toLowerCase() || 'exercicio';
+  try { await downloadsApi.save({ filename: name + '.html', data: html }); showMsg('Arquivo pronto. Envie para os alunos abrirem no navegador.'); }
+  catch(err){
+    const c = err && err.code;
+    if (c === 'declined') showMsg('');
+    else if (c === 'rate_limited') showMsg('Já existe uma janela de download aberta.');
+    else { downloadsApi = null; applyMode(); showMsg('O download não está disponível nesta visualização.'); }
+  }
+};
+$('edit').onclick = () => { attachTeacher(); studentMode = false; save(); applyMode(); go(2); };
+
+const teacherParts = ['nav', 'p1', 'p2'].map(id => { const n = $(id); return { n, parent: n.parentNode, next: n.nextElementSibling }; });
+function detachTeacher(){ teacherParts.forEach(p => p.n.remove()); }
+function attachTeacher(){ teacherParts.slice().reverse().forEach(p => { if (!p.n.isConnected) p.parent.insertBefore(p.n, p.next); }); }
+applyMode();
+if (studentMode) { detachTeacher(); go(3); }
+(async () => {
+  if (PUB && PUB.standalone) return;
+  try {
+    for (let i = 0; i < 40 && !(window.claude && window.claude.use); i++) await new Promise(r => setTimeout(r, 250));
+    if (!(window.claude && window.claude.use)) return;
+    const [user, art, dl] = await Promise.all([window.claude.use('user'), window.claude.use('artifact'), window.claude.use('downloads')]);
+    canEdit = user ? await user.canEdit() : false;
+    artifactApi = art; downloadsApi = dl;
+  } catch(e) {}
+  applyMode();
+})();
+</script>
+</body>
+</html>
